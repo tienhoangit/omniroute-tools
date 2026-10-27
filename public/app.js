@@ -89,6 +89,7 @@ function pickModel(forTool, current, onPick) {
   const status = el("div", { className: "empty" }, "Loading models…");
   const results = el("div");
   const input = el("input", { className: "input", placeholder: "Search models (e.g. claude -haiku, !embed, /regex/)…", spellcheck: false });
+  const reloadBtn = el("button", { type: "button", className: "btn sm", title: "Reload live models from OmniRoute" }, "🔄 Reload");
   let items = [];
   const render = () => {
     const ok = matcher(input.value);
@@ -105,13 +106,28 @@ function pickModel(forTool, current, onPick) {
           c.onclick = () => { onPick(m.id); close(); }; return c;
         })))));
   };
+  const doLoad = async (force = false) => {
+    status.className = "empty";
+    status.textContent = "Loading models from OmniRoute…";
+    results.replaceChildren(status);
+    try {
+      items = await loadModels(force);
+      status.remove();
+      if (!items.length) results.replaceChildren(el("div", { className: "empty" }, "The router returned no models."));
+      else render();
+    } catch (e) {
+      status.className = "note err";
+      status.textContent = `${e.message}. You can also type a model id directly in the field.`;
+    }
+  };
+  reloadBtn.onclick = () => doLoad(true);
+  const searchRow = el("div", { className: "search", style: "display: flex; gap: 8px; align-items: center;" }, icon("search", 16), input, reloadBtn);
   const body = el("div", {},
-    el("div", { className: "tip" }, icon("info", 16), el("span", {}, "Click a model to select it. Search supports exclusions (claude -haiku) and RegExp (/pattern/).")),
-    el("div", { className: "search" }, icon("search", 16), input), status, results);
+    el("div", { className: "tip" }, icon("info", 16), el("span", {}, "Click a model to select it, or type any custom model directly into the input box.")),
+    searchRow, status, results);
   const close = openModal(`Select Model for ${forTool}`, body);
   input.addEventListener("input", render); input.focus();
-  loadModels().then((it) => { items = it; status.remove(); if (!it.length) results.replaceChildren(el("div", { className: "empty" }, "The router returned no models.")); else render(); })
-    .catch((e) => { status.className = "note err"; status.textContent = `${e.message}. You can also type a model id directly in the field.`; });
+  doLoad(false);
 }
 
 // ── components ──
@@ -126,6 +142,8 @@ function modelField(forTool, init, placeholder = "provider/model-id", onSelect =
   const input = el("input", { className: "input mono", value: init || "", placeholder, spellcheck: false });
   const x = el("button", { type: "button", className: "x", ariaLabel: "Clear" }, "×");
   x.onclick = () => { input.value = ""; input.focus(); if (onSelect) onSelect(""); };
+  input.addEventListener("change", () => { if (onSelect) onSelect(input.value.trim()); });
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") { input.blur(); } });
   const pick = el("button", { type: "button", className: "btn sm" }, "Select Model");
   pick.onclick = () => pickModel(forTool, input.value, (id) => {
     input.value = id;

@@ -1,0 +1,16 @@
+{
+  "name": "omniroute-tools",
+  "version": "0.1.0",
+  "description": "One-click CLI tool configurator for OmniRoute, modelled on 9Router's CLI Tools tab.",
+  "private": true,
+  "license": "MIT",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/tools.test.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "confbox": "^0.2.2"
+  }
+}

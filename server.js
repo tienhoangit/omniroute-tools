@@ -295,6 +295,12 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      process.exit(0);
+    }
+    console.error("Server error:", err);
+  });
   server.listen(PORT, HOST, () => console.log(`OmniRoute Tools → http://${HOST}:${PORT}`));
 }
 module.exports = { server, normBase };

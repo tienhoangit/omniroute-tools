@@ -110,14 +110,14 @@ async function fetchModels(baseUrl, apiKey) {
       const items = [];
       const seen = new Set();
 
-      // Add actual configured Combos
+      // Add actual configured Combos (use c.name, never UUID c.id)
       for (const c of rawCombos) {
-        const id = c.id || c.name;
-        if (!id || seen.has(id)) continue;
-        seen.add(id);
+        const comboName = c.name || c.id;
+        if (!comboName || seen.has(comboName)) continue;
+        seen.add(comboName);
         items.push({
-          id: id.startsWith("combo/") ? id : `combo/${id}`,
-          name: c.name || id,
+          id: comboName.startsWith("combo/") ? comboName : `combo/${comboName}`,
+          name: c.name || comboName,
           group: "Combos & Auto (OmniRoute)",
           combo: true,
         });
